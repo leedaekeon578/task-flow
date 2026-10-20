@@ -1,7 +1,19 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="Task Flow API")
+from .db import init_db
+from .routers import tasks
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    init_db()
+    yield
+
+
+app = FastAPI(title="Task Flow API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -9,6 +21,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(tasks.router)
 
 
 @app.get("/health")
