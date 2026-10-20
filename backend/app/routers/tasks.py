@@ -5,13 +5,14 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException
 
 from ..db import get_db
-from ..schemas import INITIAL_STATUS, Task, TaskCreate
+from ..schemas import INITIAL_STATUS, StatusUpdate, Task, TaskCreate
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
 Db = Annotated[sqlite3.Connection, Depends(get_db)]
 
 STORAGE_ERROR = "저장하지 못했습니다."
+NOT_FOUND = "카드를 찾을 수 없습니다."
 
 
 def _now() -> str:
@@ -38,6 +39,26 @@ def create_task(body: TaskCreate, db: Db) -> Task:
         )
         db.commit()
         row = db.execute("SELECT * FROM tasks WHERE id = ?", (cur.lastrowid,)).fetchone()
+    except sqlite3.Error:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=STORAGE_ERROR)
+    return Task(**dict(row))
+
+
+@router.patch("/{task_id}/status", response_model=Task)
+def change_status(task_id: int, body: StatusUpdate, db: Db) -> Task:
+    try:
+        row = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail=NOT_FOUND)
+        # 같은 상태면 그대로 돌려주고 updated_at 도 바꾸지 않는다.
+        if row["status"] != body.status:
+            db.execute(
+                "UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?",
+                (body.status, _now(), task_id),
+            )
+            db.commit()
+            row = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
     except sqlite3.Error:
         db.rollback()
         raise HTTPException(status_code=500, detail=STORAGE_ERROR)

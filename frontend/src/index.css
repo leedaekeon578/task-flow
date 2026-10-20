@@ -71,3 +71,23 @@ main {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+.card-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.card-actions button {
+  flex: 1;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.card-actions button.current {
+  font-weight: 700;
+  background: #e0e7ff;
+  cursor: default;
+}

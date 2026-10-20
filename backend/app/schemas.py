@@ -22,6 +22,10 @@ class TaskCreate(BaseModel):
         return v
 
 
+class StatusUpdate(BaseModel):
+    status: Status
+
+
 class Task(BaseModel):
     id: int
     title: str

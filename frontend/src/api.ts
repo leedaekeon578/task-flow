@@ -1,6 +1,13 @@
-import type { Task } from './types'
+import type { Status, Task } from './types'
 
-export class ApiError extends Error {}
+export class ApiError extends Error {
+  status?: number
+
+  constructor(message: string, status?: number) {
+    super(message)
+    this.status = status
+  }
+}
 
 // FastAPI 오류 본문(detail)에서 사용자에게 보일 문장을 꺼낸다.
 function messageFrom(body: unknown, fallback: string): string {
@@ -21,7 +28,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   }
   const body = await res.json().catch(() => null)
   if (!res.ok) {
-    throw new ApiError(messageFrom(body, '요청을 처리하지 못했습니다.'))
+    throw new ApiError(
+      messageFrom(body, '요청을 처리하지 못했습니다.'),
+      res.status,
+    )
   }
   return body as T
 }
@@ -35,5 +45,13 @@ export function createTask(title: string, description: string): Promise<Task> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title, description }),
+  })
+}
+
+export function changeStatus(id: number, status: Status): Promise<Task> {
+  return request<Task>(`/api/tasks/${id}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
   })
 }
