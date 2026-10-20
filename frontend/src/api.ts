@@ -55,3 +55,19 @@ export function changeStatus(id: number, status: Status): Promise<Task> {
     body: JSON.stringify({ status }),
   })
 }
+
+export function updateTask(
+  id: number,
+  title: string,
+  description: string,
+): Promise<Task> {
+  return request<Task>(`/api/tasks/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description }),
+  })
+}
+
+export function deleteTask(id: number): Promise<null> {
+  return request<null>(`/api/tasks/${id}`, { method: 'DELETE' })
+}

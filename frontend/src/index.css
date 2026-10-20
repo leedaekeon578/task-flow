@@ -91,3 +91,14 @@ main {
   background: #e0e7ff;
   cursor: default;
 }
+
+.card-edit {
+  display: grid;
+  gap: 6px;
+}
+
+.card-edit input,
+.card-edit textarea {
+  font: inherit;
+  padding: 6px;
+}

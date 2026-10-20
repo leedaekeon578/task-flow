@@ -24,3 +24,9 @@ export function titleError(title: string): string | null {
     return `제목은 ${TITLE_MAX_LENGTH}자 이하여야 합니다.`
   return null
 }
+
+// 카드를 수정하는 동안의 입력값
+export interface Draft {
+  title: string
+  description: string
+}

@@ -63,3 +63,35 @@ def change_status(task_id: int, body: StatusUpdate, db: Db) -> Task:
         db.rollback()
         raise HTTPException(status_code=500, detail=STORAGE_ERROR)
     return Task(**dict(row))
+
+
+@router.patch("/{task_id}", response_model=Task)
+def update_task(task_id: int, body: TaskCreate, db: Db) -> Task:
+    try:
+        row = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+        if row is None:
+            raise HTTPException(status_code=404, detail=NOT_FOUND)
+        # 제목 · 설명만 바꾼다. 상태는 건드리지 않고, 값이 같으면 updated_at 도 그대로 둔다.
+        if row["title"] != body.title or row["description"] != body.description:
+            db.execute(
+                "UPDATE tasks SET title = ?, description = ?, updated_at = ? WHERE id = ?",
+                (body.title, body.description, _now(), task_id),
+            )
+            db.commit()
+            row = db.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+    except sqlite3.Error:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=STORAGE_ERROR)
+    return Task(**dict(row))
+
+
+@router.delete("/{task_id}", status_code=204)
+def delete_task(task_id: int, db: Db) -> None:
+    try:
+        cur = db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
+        db.commit()
+    except sqlite3.Error:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=STORAGE_ERROR)
+    if cur.rowcount == 0:
+        raise HTTPException(status_code=404, detail=NOT_FOUND)
