@@ -8,3 +8,118 @@ main {
   margin: 0 auto;
   padding: 24px;
 }
+
+.task-form {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.task-form input,
+.task-form textarea {
+  font: inherit;
+  padding: 8px;
+}
+
+.task-form button {
+  justify-self: start;
+  padding: 6px 16px;
+}
+
+.form-error {
+  margin: 0;
+  color: #b00020;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.column {
+  background: #f3f4f6;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 120px;
+}
+
+.column h2 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.card h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.card-desc {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: #4b5563;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.card-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.card-actions button {
+  flex: 1;
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.card-actions button.current {
+  font-weight: 700;
+  background: #e0e7ff;
+  cursor: default;
+}
+
+.card-edit {
+  display: grid;
+  gap: 6px;
+}
+
+.card-edit input,
+.card-edit textarea {
+  font: inherit;
+  padding: 6px;
+}
+
+.notice {
+  margin: 0 0 16px;
+}
+
+.notice.error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #b00020;
+}
+
+.notice.error p {
+  margin: 0;
+}
+
+.empty {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
