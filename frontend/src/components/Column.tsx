@@ -17,6 +17,7 @@ export function Column({ label, tasks, drafts, ...handlers }: Props) {
   return (
     <section className="column">
       <h2>{label}</h2>
+      {tasks.length === 0 && <p className="empty">카드 없음</p>}
       {tasks.map((task) => (
         <TaskCard key={task.id} task={task} draft={drafts[task.id]} {...handlers} />
       ))}

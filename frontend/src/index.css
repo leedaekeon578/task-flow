@@ -102,3 +102,24 @@ main {
   font: inherit;
   padding: 6px;
 }
+
+.notice {
+  margin: 0 0 16px;
+}
+
+.notice.error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #b00020;
+}
+
+.notice.error p {
+  margin: 0;
+}
+
+.empty {
+  margin: 0;
+  color: #6b7280;
+  font-size: 0.85rem;
+}
