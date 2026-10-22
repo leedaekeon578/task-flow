@@ -2,19 +2,12 @@ import sqlite3
 from collections.abc import Iterator
 from pathlib import Path
 
-DB_PATH = Path(__file__).resolve().parent.parent / "data" / "taskflow.db"
+from alembic.config import Config
+from alembic.script import ScriptDirectory
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS tasks (
-    id          INTEGER PRIMARY KEY AUTOINCREMENT,
-    title       TEXT NOT NULL,
-    description TEXT NOT NULL DEFAULT '',
-    status      TEXT NOT NULL DEFAULT 'TODO'
-                CHECK (status IN ('TODO', 'IN_PROGRESS', 'DONE')),
-    created_at  TEXT NOT NULL,
-    updated_at  TEXT NOT NULL
-)
-"""
+BACKEND_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = BACKEND_DIR / "data" / "taskflow.db"
+ALEMBIC_INI = BACKEND_DIR / "alembic.ini"
 
 
 def connect() -> sqlite3.Connection:
@@ -23,15 +16,28 @@ def connect() -> sqlite3.Connection:
     return conn
 
 
-def init_db() -> None:
-    # 파일이 없으면 새로 만든다. 읽을 수 없으면 예외로 서버가 멈춘다. (AQ-01)
-    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+class SchemaError(RuntimeError):
+    pass
+
+
+def check_schema() -> None:
+    # 표는 Alembic 이 만든다. 서버는 만들지 않고, 이전이 안 된 DB 면 시작을 거부한다. (AQ-01)
+    if not DB_PATH.exists():
+        raise SchemaError(
+            "DB 파일이 없습니다. backend 폴더에서 `uv run alembic upgrade head` 를 실행하세요."
+        )
+    head = ScriptDirectory.from_config(Config(str(ALEMBIC_INI))).get_current_head()
     conn = connect()
     try:
-        conn.execute(SCHEMA)
-        conn.commit()
+        row = conn.execute("SELECT version_num FROM alembic_version").fetchone()
+    except sqlite3.OperationalError:
+        row = None
     finally:
         conn.close()
+    if row is None or row["version_num"] != head:
+        raise SchemaError(
+            "DB 가 최신 버전이 아닙니다. 백업한 뒤 `uv run alembic upgrade head` 를 실행하세요."
+        )
 
 
 def get_db() -> Iterator[sqlite3.Connection]:
