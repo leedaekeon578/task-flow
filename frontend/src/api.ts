@@ -1,4 +1,4 @@
-import type { Status, Task } from './types'
+import type { AuthUser, Status, Task } from './types'
 
 export class ApiError extends Error {
   status?: number
@@ -44,6 +44,35 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     )
   }
   return body as T
+}
+
+// 로그인 상태는 httponly 쿠키가 들고 있다. 같은 출처(/api 프록시)라 fetch 가 쿠키를 알아서 보낸다.
+function sendCredentials(
+  path: string,
+  email: string,
+  password: string,
+): Promise<AuthUser> {
+  return request<AuthUser>(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  })
+}
+
+export function signup(email: string, password: string): Promise<AuthUser> {
+  return sendCredentials('/api/auth/signup', email, password)
+}
+
+export function login(email: string, password: string): Promise<AuthUser> {
+  return sendCredentials('/api/auth/login', email, password)
+}
+
+export function logout(): Promise<null> {
+  return request<null>('/api/auth/logout', { method: 'POST' })
+}
+
+export function fetchMe(): Promise<AuthUser> {
+  return request<AuthUser>('/api/auth/me')
 }
 
 export function listTasks(): Promise<Task[]> {
