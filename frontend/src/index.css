@@ -31,6 +31,49 @@ main {
   color: #b00020;
 }
 
+.auth {
+  max-width: 360px;
+}
+
+.auth-form {
+  display: grid;
+  gap: 8px;
+}
+
+.auth-form input {
+  font: inherit;
+  padding: 8px;
+}
+
+.auth-form button[type='submit'] {
+  justify-self: start;
+  padding: 6px 16px;
+}
+
+.auth-form button.link {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.85rem;
+  color: #4338ca;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.user-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 12px 24px 0;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
 .columns {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

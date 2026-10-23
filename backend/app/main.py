@@ -3,13 +3,16 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .db import init_db
-from .routers import tasks
+from .config import load_env_file, load_session_secret
+from .db import check_schema
+from .routers import auth, tasks
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI):
-    init_db()
+async def lifespan(app: FastAPI):
+    load_env_file()
+    app.state.session_secret = load_session_secret()
+    check_schema()
     yield
 
 
@@ -22,6 +25,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(tasks.router)
 
 
