@@ -1,10 +1,27 @@
 export type Status = 'TODO' | 'IN_PROGRESS' | 'DONE'
 
+export type Priority = 'LOW' | 'NORMAL' | 'HIGH'
+
+export const PRIORITIES: { value: Priority; label: string }[] = [
+  { value: 'LOW', label: '낮음' },
+  { value: 'NORMAL', label: '보통' },
+  { value: 'HIGH', label: '높음' },
+]
+
+export const DEFAULT_PRIORITY: Priority = 'NORMAL'
+
+export function priorityLabel(priority: Priority): string {
+  return PRIORITIES.find((p) => p.value === priority)?.label ?? priority
+}
+
 export interface Task {
   id: number
   title: string
   description: string
   status: Status
+  priority: Priority
+  due_date: string | null // YYYY-MM-DD
+  overdue: boolean // 서버가 계산해서 준다. 화면은 다시 계산하지 않는다.
   created_at: string
   updated_at: string
 }
@@ -45,8 +62,10 @@ export function credentialsError(
   return null
 }
 
-// 카드를 수정하는 동안의 입력값
+// 등록 · 수정 입력값. dueDate 가 빈 문자열이면 마감일 없음(API 에는 null 로 보낸다).
 export interface Draft {
   title: string
   description: string
+  priority: Priority
+  dueDate: string
 }

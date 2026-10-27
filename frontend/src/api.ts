@@ -1,4 +1,4 @@
-import type { AuthUser, Status, Task } from './types'
+import type { AuthUser, Draft, Status, Task } from './types'
 
 export class ApiError extends Error {
   status?: number
@@ -79,11 +79,21 @@ export function listTasks(): Promise<Task[]> {
   return request<Task[]>('/api/tasks')
 }
 
-export function createTask(title: string, description: string): Promise<Task> {
+// 등록과 수정이 같은 모양으로 네 값을 모두 보낸다. 마감일을 비우면 null 이다.
+function taskBody(input: Draft): string {
+  return JSON.stringify({
+    title: input.title,
+    description: input.description,
+    priority: input.priority,
+    due_date: input.dueDate || null,
+  })
+}
+
+export function createTask(input: Draft): Promise<Task> {
   return request<Task>('/api/tasks', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description }),
+    body: taskBody(input),
   })
 }
 
@@ -95,15 +105,11 @@ export function changeStatus(id: number, status: Status): Promise<Task> {
   })
 }
 
-export function updateTask(
-  id: number,
-  title: string,
-  description: string,
-): Promise<Task> {
+export function updateTask(id: number, input: Draft): Promise<Task> {
   return request<Task>(`/api/tasks/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description }),
+    body: taskBody(input),
   })
 }
 
