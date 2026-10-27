@@ -1,14 +1,34 @@
+import re
+from datetime import date
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, BeforeValidator, EmailStr, Field, field_validator
+from pydantic import AfterValidator, BaseModel, BeforeValidator, EmailStr, Field, field_validator
+
+from .rules import Priority
 
 Status = Literal["TODO", "IN_PROGRESS", "DONE"]
 
 TITLE_MAX_LENGTH = 100
 INITIAL_STATUS: Status = "TODO"
 
+_DATE_FORMAT = re.compile(r"\d{4}-\d{2}-\d{2}")
 
-class TaskCreate(BaseModel):
+
+def _check_due_date(v: str) -> str:
+    # 날짜만(YYYY-MM-DD). 형식이 다르거나 없는 날짜(2026-02-30)는 거부한다. 과거 날짜는 허용. (규칙 3)
+    try:
+        if not _DATE_FORMAT.fullmatch(v):
+            raise ValueError
+        date.fromisoformat(v)
+    except ValueError:
+        raise ValueError("마감일은 YYYY-MM-DD 형식의 실제 날짜여야 합니다.") from None
+    return v
+
+
+DueDate = Annotated[str, AfterValidator(_check_due_date)]
+
+
+class _TaskInput(BaseModel):
     title: str
     description: str = ""
 
@@ -22,6 +42,27 @@ class TaskCreate(BaseModel):
         return v
 
 
+class TaskCreate(_TaskInput):
+    # 생략하면 NORMAL · null.
+    priority: Priority = Priority.NORMAL
+    due_date: DueDate | None = None
+
+
+class TaskUpdate(_TaskInput):
+    # 수정은 TaskCreate 를 쓰지 않는다. 기본값이 있으면 안 보낸 값이 덮어써지기 때문이다.
+    # 안 보냄(model_fields_set 에 없음)이면 유지, due_date 의 null 은 비움, 값은 변경.
+    priority: Priority | None = None
+    due_date: DueDate | None = None
+
+    @field_validator("priority")
+    @classmethod
+    def priority_not_null(cls, v: Priority | None) -> Priority | None:
+        # 보냈는데 null 이면 거부한다. 우선순위는 지울 수 없다. (안 보냈을 때는 검증이 돌지 않는다)
+        if v is None:
+            raise ValueError("우선순위는 비울 수 없습니다.")
+        return v
+
+
 class StatusUpdate(BaseModel):
     status: Status
 
@@ -31,6 +72,9 @@ class Task(BaseModel):
     title: str
     description: str
     status: Status
+    priority: Priority
+    due_date: str | None
+    overdue: bool  # 저장하지 않고 응답을 만들 때 서버가 계산한다.
     created_at: str
     updated_at: str
 
