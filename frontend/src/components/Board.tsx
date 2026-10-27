@@ -62,10 +62,12 @@ export function Board() {
     }
   }
 
-  // 저장이 성공한 뒤에만 화면을 바꾼다. 열 안 순서는 id 순서 그대로다. (D-005)
+  // 저장이 성공한 뒤에만 화면을 바꾼다. (D-005)
+  // 열 안 순서와 기한 초과는 서버가 정한다. 화면은 다시 정렬하지 않고, 성공하면 목록을 다시 받는다.
   async function handleChangeStatus(task: Task, status: Status) {
     try {
       replace(await changeStatus(task.id, status))
+      await reload()
     } catch (err) {
       await reloadIfMissing(err, task.id)
       throw err
@@ -74,8 +76,9 @@ export function Board() {
 
   async function handleSave(task: Task, draft: Draft) {
     try {
-      replace(await updateTask(task.id, draft.title, draft.description))
+      replace(await updateTask(task.id, draft))
       setDrafts((prev) => without(prev, task.id))
+      await reload()
     } catch (err) {
       await reloadIfMissing(err, task.id)
       throw err
@@ -109,7 +112,12 @@ export function Board() {
           onStartEdit={(t) =>
             setDrafts((prev) => ({
               ...prev,
-              [t.id]: { title: t.title, description: t.description },
+              [t.id]: {
+                title: t.title,
+                description: t.description,
+                priority: t.priority,
+                dueDate: t.due_date ?? '',
+              },
             }))
           }
           onEditChange={(t, d) => setDrafts((prev) => ({ ...prev, [t.id]: d }))}
@@ -126,9 +134,10 @@ export function Board() {
       <h1>Task Flow</h1>
       <TaskForm
         onCreated={(task) => {
-          // 보드가 아직 없으면(불러오는 중 · 처음 불러오기 실패) 서버 내용을 다시 불러온다.
+          // 보드가 있으면 일단 붙여 보이고, 어느 경우든 서버 순서에 맞게 다시 불러온다.
+          // (보드가 아직 없으면 불러오는 중 · 처음 불러오기 실패다.)
           if (loadState === 'ready') setTasks((prev) => [...prev, task])
-          else reload()
+          reload()
         }}
       />
       {loadState === 'loading' && <p className="notice">불러오는 중…</p>}

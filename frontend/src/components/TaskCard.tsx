@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { ApiError } from '../api'
-import { COLUMNS, titleError, type Draft, type Status, type Task } from '../types'
+import {
+  COLUMNS,
+  PRIORITIES,
+  priorityLabel,
+  titleError,
+  type Draft,
+  type Priority,
+  type Status,
+  type Task,
+} from '../types'
 
 interface Props {
   task: Task
@@ -61,7 +70,7 @@ export function TaskCard({
   }
 
   return (
-    <article className="card">
+    <article className={task.overdue ? 'card overdue' : 'card'}>
       {draft ? (
         <div className="card-edit">
           <input
@@ -77,6 +86,39 @@ export function TaskCard({
               onEditChange(task, { ...draft, description: e.target.value })
             }
           />
+          <div className="field-row">
+            <label>
+              우선순위
+              <select
+                value={draft.priority}
+                onChange={(e) =>
+                  onEditChange(task, { ...draft, priority: e.target.value as Priority })
+                }
+              >
+                {PRIORITIES.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              마감일
+              <input
+                type="date"
+                max="9999-12-31"
+                value={draft.dueDate}
+                onChange={(e) => onEditChange(task, { ...draft, dueDate: e.target.value })}
+              />
+            </label>
+            <button
+              type="button"
+              disabled={pending || !draft.dueDate}
+              onClick={() => onEditChange(task, { ...draft, dueDate: '' })}
+            >
+              마감일 비우기
+            </button>
+          </div>
           <div className="card-actions">
             <button type="button" disabled={pending} onClick={handleSave}>
               저장
@@ -90,6 +132,13 @@ export function TaskCard({
         <>
           <h3>{task.title}</h3>
           {task.description && <p className="card-desc">{task.description}</p>}
+          <div className="card-meta">
+            <span className={`badge priority-${task.priority.toLowerCase()}`}>
+              우선순위 {priorityLabel(task.priority)}
+            </span>
+            {task.due_date && <span className="due-date">마감 {task.due_date}</span>}
+            {task.overdue && <span className="badge badge-overdue">기한 초과</span>}
+          </div>
         </>
       )}
       <div className="card-actions" role="group" aria-label="상태 변경">

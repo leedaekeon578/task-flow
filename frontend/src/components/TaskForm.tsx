@@ -1,10 +1,18 @@
 import { useState, type FormEvent } from 'react'
 import { ApiError, createTask } from '../api'
-import { titleError, type Task } from '../types'
+import {
+  DEFAULT_PRIORITY,
+  PRIORITIES,
+  titleError,
+  type Priority,
+  type Task,
+} from '../types'
 
 export function TaskForm({ onCreated }: { onCreated: (task: Task) => void }) {
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [priority, setPriority] = useState<Priority>(DEFAULT_PRIORITY)
+  const [dueDate, setDueDate] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
@@ -18,11 +26,13 @@ export function TaskForm({ onCreated }: { onCreated: (task: Task) => void }) {
     setSaving(true)
     setError(null)
     try {
-      const created = await createTask(title, description)
+      const created = await createTask({ title, description, priority, dueDate })
       // 저장이 성공한 뒤에만 보드에 반영하고 입력 칸을 비운다. (D-005)
       onCreated(created)
       setTitle('')
       setDescription('')
+      setPriority(DEFAULT_PRIORITY)
+      setDueDate('')
     } catch (err) {
       // 실패하면 입력한 내용을 남긴다.
       setError(err instanceof ApiError ? err.message : '요청을 처리하지 못했습니다.')
@@ -46,6 +56,30 @@ export function TaskForm({ onCreated }: { onCreated: (task: Task) => void }) {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
+      <div className="field-row">
+        <label>
+          우선순위
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as Priority)}
+          >
+            {PRIORITIES.map(({ value, label }) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          마감일 (선택)
+          <input
+            type="date"
+            max="9999-12-31"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+          />
+        </label>
+      </div>
       <button type="submit" disabled={saving}>
         등록
       </button>
