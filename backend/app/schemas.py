@@ -74,6 +74,38 @@ class SuggestResponse(BaseModel):
     reason: str
 
 
+class GenerateRequest(BaseModel):
+    # 주제 한 줄. 규칙은 Task 제목과 같다(필수, 공백만 안 됨, 100자 이하).
+    topic: str
+
+    @field_validator("topic")
+    @classmethod
+    def topic_rules(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("주제를 입력하세요.")
+        if len(v) > TITLE_MAX_LENGTH:
+            raise ValueError(f"주제는 {TITLE_MAX_LENGTH}자 이하여야 합니다.")
+        return v
+
+
+class GeneratedTask(BaseModel):
+    # 세 값 모두 필수다. 빠지면 기본값을 채우지 않고 모양이 다른 답으로 본다.
+    title: str
+    priority: Priority
+    due_date: DueDate | None
+
+    @field_validator("title")
+    @classmethod
+    def title_not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("제목이 비어 있습니다.")
+        return v
+
+
+class GenerateResponse(BaseModel):
+    tasks: list[GeneratedTask] = Field(min_length=3, max_length=5)
+
+
 class StatusUpdate(BaseModel):
     status: Status
 

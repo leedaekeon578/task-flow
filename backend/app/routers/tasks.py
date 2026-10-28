@@ -9,6 +9,8 @@ from ..db import get_db
 from ..deps import CurrentUser
 from ..schemas import (
     INITIAL_STATUS,
+    GenerateRequest,
+    GenerateResponse,
     StatusUpdate,
     SuggestRequest,
     SuggestResponse,
@@ -80,6 +82,15 @@ def suggest_task(body: SuggestRequest, user: CurrentUser) -> SuggestResponse:
     # 제안만 돌려준다. DB 는 열지도 않고 저장하지 않는다. 오늘 날짜는 서버가 넣는다.
     try:
         return ai.suggest(body.title, body.description, rules.today().isoformat())
+    except ai.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+
+
+@router.post("/generate", response_model=GenerateResponse)
+def generate_tasks(body: GenerateRequest, user: CurrentUser) -> GenerateResponse:
+    # 제안만 돌려준다. DB 는 열지도 않고 저장하지 않는다. 오늘 날짜는 서버가 넣는다.
+    try:
+        return ai.generate(body.topic, rules.today().isoformat())
     except ai.SuggestError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
