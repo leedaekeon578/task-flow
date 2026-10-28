@@ -63,6 +63,17 @@ class TaskUpdate(_TaskInput):
         return v
 
 
+class SuggestRequest(_TaskInput):
+    # 제목 · 설명 규칙은 Task 입력과 같다. 저장하지 않고 AI 제안만 받는다.
+    pass
+
+
+class SuggestResponse(BaseModel):
+    priority: Priority
+    due_date: DueDate | None
+    reason: str
+
+
 class StatusUpdate(BaseModel):
     status: Status
 
