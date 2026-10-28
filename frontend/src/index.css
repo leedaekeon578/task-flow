@@ -111,6 +111,35 @@ main {
   border-color: #b00020;
 }
 
+.suggest-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggest-row button {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+}
+
+.suggest-status {
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+.suggest-row .form-error {
+  font-size: 0.8rem;
+}
+
+.suggest-reason {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #4b5563;
+  overflow-wrap: anywhere;
+}
+
 .field-row {
   display: flex;
   flex-wrap: wrap;

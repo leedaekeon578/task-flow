@@ -8,6 +8,7 @@ interface Props {
   onChangeStatus: (task: Task, status: Status) => Promise<void>
   onStartEdit: (task: Task) => void
   onEditChange: (task: Task, draft: Draft) => void
+  onEditPatch: (task: Task, patch: Partial<Draft>) => void
   onCancelEdit: (task: Task) => void
   onSave: (task: Task, draft: Draft) => Promise<void>
   onDelete: (task: Task) => Promise<void>

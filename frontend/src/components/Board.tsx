@@ -121,6 +121,12 @@ export function Board() {
             }))
           }
           onEditChange={(t, d) => setDrafts((prev) => ({ ...prev, [t.id]: d }))}
+          // 수정이 이미 끝난(저장 · 취소) 카드면 늦게 온 제안을 버린다.
+          onEditPatch={(t, patch) =>
+            setDrafts((prev) =>
+              prev[t.id] ? { ...prev, [t.id]: { ...prev[t.id], ...patch } } : prev,
+            )
+          }
           onCancelEdit={(t) => setDrafts((prev) => without(prev, t.id))}
           onSave={handleSave}
           onDelete={handleDelete}

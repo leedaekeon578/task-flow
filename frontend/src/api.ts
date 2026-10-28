@@ -1,4 +1,4 @@
-import type { AuthUser, Draft, Status, Task } from './types'
+import type { AuthUser, Draft, Status, Suggestion, Task } from './types'
 
 export class ApiError extends Error {
   status?: number
@@ -94,6 +94,15 @@ export function createTask(input: Draft): Promise<Task> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: taskBody(input),
+  })
+}
+
+// 제안만 받는다. 서버는 저장하지 않으므로 이 요청은 카드를 바꾸지 않는다.
+export function suggestTask(title: string, description: string): Promise<Suggestion> {
+  return request<Suggestion>('/api/tasks/suggest', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description }),
   })
 }
 

@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { ApiError, createTask } from '../api'
+import { SuggestButton, SuggestReason } from './Suggest'
+import { useSuggest } from './useSuggest'
 import {
   DEFAULT_PRIORITY,
   PRIORITIES,
@@ -15,6 +17,16 @@ export function TaskForm({ onCreated }: { onCreated: (task: Task) => void }) {
   const [dueDate, setDueDate] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const suggest = useSuggest()
+
+  // 제안은 입력칸만 채운다. 저장은 사용자가 등록 버튼으로 한다.
+  // 제안 마감일이 없으면 사용자가 적어 둔 마감일을 지우지 않는다.
+  function handleSuggest() {
+    suggest.run(title, description, (s) => {
+      setPriority(s.priority)
+      if (s.due_date) setDueDate(s.due_date)
+    })
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -33,6 +45,7 @@ export function TaskForm({ onCreated }: { onCreated: (task: Task) => void }) {
       setDescription('')
       setPriority(DEFAULT_PRIORITY)
       setDueDate('')
+      suggest.reset()
     } catch (err) {
       // 실패하면 입력한 내용을 남긴다.
       setError(err instanceof ApiError ? err.message : '요청을 처리하지 못했습니다.')
@@ -56,6 +69,7 @@ export function TaskForm({ onCreated }: { onCreated: (task: Task) => void }) {
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
+      <SuggestButton suggest={suggest} onClick={handleSuggest} />
       <div className="field-row">
         <label>
           우선순위
@@ -80,6 +94,7 @@ export function TaskForm({ onCreated }: { onCreated: (task: Task) => void }) {
           />
         </label>
       </div>
+      <SuggestReason suggest={suggest} />
       <button type="submit" disabled={saving}>
         등록
       </button>
