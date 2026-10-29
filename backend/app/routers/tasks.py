@@ -4,11 +4,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from .. import ai, rules
+from .. import ai, briefing, rules
 from ..db import get_db
 from ..deps import CurrentUser
 from ..schemas import (
     INITIAL_STATUS,
+    BriefingResponse,
     GenerateRequest,
     GenerateResponse,
     StatusUpdate,
@@ -82,6 +83,33 @@ def suggest_task(body: SuggestRequest, user: CurrentUser) -> SuggestResponse:
     # 제안만 돌려준다. DB 는 열지도 않고 저장하지 않는다. 오늘 날짜는 서버가 넣는다.
     try:
         return ai.suggest(body.title, body.description, rules.today().isoformat())
+    except ai.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+
+
+@router.post("/briefing", response_model=BriefingResponse)
+def briefing_tasks(user: CurrentUser, db: Db) -> BriefingResponse:
+    # 내 할 일 중 DONE 이 아닌 것만 AI 에 보낸다. 설명은 빼고, 아무것도 저장하지 않는다.
+    try:
+        rows = db.execute(
+            "SELECT * FROM tasks WHERE owner_id = ? AND status != 'DONE' ORDER BY id ASC",
+            (user.id,),
+        ).fetchall()
+    except sqlite3.Error:
+        raise HTTPException(status_code=500, detail="카드를 읽지 못했습니다.")
+    today = rules.today()
+    items = [
+        {
+            "id": r["id"],
+            "title": r["title"],
+            "priority": r["priority"],
+            "due_date": r["due_date"],
+            "overdue": rules.is_overdue(r["due_date"], r["status"], today),
+        }
+        for r in rows
+    ]
+    try:
+        return briefing.briefing(items, today)
     except ai.SuggestError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
