@@ -4,7 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from .. import ai, briefing, rules
+from .. import ai, briefing, rules, weekplan
 from ..db import get_db
 from ..deps import CurrentUser
 from ..schemas import (
@@ -114,6 +114,33 @@ def briefing_tasks(user: CurrentUser, db: Db) -> BriefingResponse:
     ]
     try:
         return briefing.briefing(items, today)
+    except ai.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+
+
+@router.post("/weekplan", response_model=weekplan.WeekPlanResponse)
+def weekplan_tasks(user: CurrentUser, db: Db) -> weekplan.WeekPlanResponse:
+    # 내 할 일 중 DONE 이 아닌 것만 AI 에 보낸다. 설명은 빼고, 아무것도 저장하지 않는다.
+    try:
+        rows = db.execute(
+            "SELECT * FROM tasks WHERE owner_id = ? AND status != 'DONE' ORDER BY id ASC",
+            (user.id,),
+        ).fetchall()
+    except sqlite3.Error:
+        raise HTTPException(status_code=500, detail="카드를 읽지 못했습니다.")
+    today = rules.today()
+    items = [
+        {
+            "id": r["id"],
+            "title": r["title"],
+            "priority": rules.safe_priority(r["priority"]),
+            "due_date": rules.safe_due(r["due_date"]),
+            "overdue": rules.is_overdue(r["due_date"], r["status"], today),
+        }
+        for r in rows
+    ]
+    try:
+        return weekplan.weekplan(items, today)
     except ai.SuggestError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 

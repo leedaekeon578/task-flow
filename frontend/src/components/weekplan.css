@@ -1,0 +1,79 @@
+.weekplan {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  margin: 12px 0;
+}
+
+.weekplan > button,
+.weekplan-actions button {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+}
+
+.weekplan-card {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.weekplan-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.weekplan-table th,
+.weekplan-table td {
+  padding: 6px 4px;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+.weekplan-table tr:last-child th,
+.weekplan-table tr:last-child td {
+  border-bottom: none;
+}
+
+.weekplan-table th {
+  width: 6.5em;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.weekplan-table ul {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.weekplan-note {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+.weekplan-table td > .weekplan-note:first-child {
+  margin-top: 0;
+}
+
+.weekplan-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.weekplan-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #4b5563;
+}

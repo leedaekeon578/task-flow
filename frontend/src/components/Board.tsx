@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { ApiError, CONNECTION_ERROR, changeStatus, deleteTask, listTasks, updateTask } from '../api'
 import { COLUMNS, type Draft, type Status, type Task } from '../types'
 import { Briefing } from './Briefing'
+import { Weekplan } from './Weekplan'
 import { Column } from './Column'
 import { TaskForm } from './TaskForm'
 
@@ -148,6 +149,7 @@ export function Board() {
         }}
       />
       <Briefing tasks={tasks} />
+      <Weekplan tasks={tasks} />
       {loadState === 'loading' && <p className="notice">불러오는 중…</p>}
       {loadState === 'error' && (
         <div className="notice error" role="alert">
