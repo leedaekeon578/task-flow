@@ -34,7 +34,11 @@ def _now() -> str:
 
 def _to_task(row: sqlite3.Row, today: date) -> Task:
     # overdue 는 저장하지 않고 여기서 계산한다. owner_id 는 Task 에 없어 응답에 나가지 않는다.
-    return Task(**dict(row), overdue=rules.is_overdue(row["due_date"], row["status"], today))
+    # DB 에 이상한 priority · due_date 가 있어도 읽기가 실패하지 않게 안전한 값으로 바꿔 내보낸다.
+    data = dict(row)
+    data["priority"] = rules.safe_priority(row["priority"])
+    data["due_date"] = rules.safe_due(row["due_date"])
+    return Task(**data, overdue=rules.is_overdue(row["due_date"], row["status"], today))
 
 
 @router.get("", response_model=list[Task])
@@ -102,8 +106,8 @@ def briefing_tasks(user: CurrentUser, db: Db) -> BriefingResponse:
         {
             "id": r["id"],
             "title": r["title"],
-            "priority": r["priority"],
-            "due_date": r["due_date"],
+            "priority": rules.safe_priority(r["priority"]),
+            "due_date": rules.safe_due(r["due_date"]),
             "overdue": rules.is_overdue(r["due_date"], r["status"], today),
         }
         for r in rows
