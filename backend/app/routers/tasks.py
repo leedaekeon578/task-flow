@@ -4,12 +4,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from .. import ai, briefing, rules
+from .. import ai, briefing, command, rules
 from ..db import get_db
 from ..deps import CurrentUser
 from ..schemas import (
     INITIAL_STATUS,
     BriefingResponse,
+    CommandRequest,
+    CommandResponse,
     GenerateRequest,
     GenerateResponse,
     StatusUpdate,
@@ -114,6 +116,33 @@ def briefing_tasks(user: CurrentUser, db: Db) -> BriefingResponse:
     ]
     try:
         return briefing.briefing(items, today)
+    except ai.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+
+
+@router.post("/command", response_model=CommandResponse)
+def command_tasks(body: CommandRequest, user: CurrentUser, db: Db) -> CommandResponse:
+    # 변경안만 돌려준다. 내 할 일 중 DONE 이 아닌 것만(설명 빼고) AI 에 보내고, 아무것도 저장하지 않는다.
+    try:
+        rows = db.execute(
+            "SELECT * FROM tasks WHERE owner_id = ? AND status != 'DONE' ORDER BY id ASC",
+            (user.id,),
+        ).fetchall()
+    except sqlite3.Error:
+        raise HTTPException(status_code=500, detail="카드를 읽지 못했습니다.")
+    today = rules.today()
+    items = [
+        {
+            "id": r["id"],
+            "title": r["title"],
+            "priority": rules.safe_priority(r["priority"]),
+            "due_date": rules.safe_due(r["due_date"]),
+            "overdue": rules.is_overdue(r["due_date"], r["status"], today),
+        }
+        for r in rows
+    ]
+    try:
+        return command.command(body.text, items, today)
     except ai.SuggestError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
