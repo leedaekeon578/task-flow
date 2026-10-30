@@ -4,11 +4,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from .. import ai, rules
+from .. import ai, briefing, rules
 from ..db import get_db
 from ..deps import CurrentUser
 from ..schemas import (
     INITIAL_STATUS,
+    BriefingResponse,
     GenerateRequest,
     GenerateResponse,
     StatusUpdate,
@@ -33,7 +34,11 @@ def _now() -> str:
 
 def _to_task(row: sqlite3.Row, today: date) -> Task:
     # overdue 는 저장하지 않고 여기서 계산한다. owner_id 는 Task 에 없어 응답에 나가지 않는다.
-    return Task(**dict(row), overdue=rules.is_overdue(row["due_date"], row["status"], today))
+    # DB 에 이상한 priority · due_date 가 있어도 읽기가 실패하지 않게 안전한 값으로 바꿔 내보낸다.
+    data = dict(row)
+    data["priority"] = rules.safe_priority(row["priority"])
+    data["due_date"] = rules.safe_due(row["due_date"])
+    return Task(**data, overdue=rules.is_overdue(row["due_date"], row["status"], today))
 
 
 @router.get("", response_model=list[Task])
@@ -82,6 +87,33 @@ def suggest_task(body: SuggestRequest, user: CurrentUser) -> SuggestResponse:
     # 제안만 돌려준다. DB 는 열지도 않고 저장하지 않는다. 오늘 날짜는 서버가 넣는다.
     try:
         return ai.suggest(body.title, body.description, rules.today().isoformat())
+    except ai.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+
+
+@router.post("/briefing", response_model=BriefingResponse)
+def briefing_tasks(user: CurrentUser, db: Db) -> BriefingResponse:
+    # 내 할 일 중 DONE 이 아닌 것만 AI 에 보낸다. 설명은 빼고, 아무것도 저장하지 않는다.
+    try:
+        rows = db.execute(
+            "SELECT * FROM tasks WHERE owner_id = ? AND status != 'DONE' ORDER BY id ASC",
+            (user.id,),
+        ).fetchall()
+    except sqlite3.Error:
+        raise HTTPException(status_code=500, detail="카드를 읽지 못했습니다.")
+    today = rules.today()
+    items = [
+        {
+            "id": r["id"],
+            "title": r["title"],
+            "priority": rules.safe_priority(r["priority"]),
+            "due_date": rules.safe_due(r["due_date"]),
+            "overdue": rules.is_overdue(r["due_date"], r["status"], today),
+        }
+        for r in rows
+    ]
+    try:
+        return briefing.briefing(items, today)
     except ai.SuggestError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 

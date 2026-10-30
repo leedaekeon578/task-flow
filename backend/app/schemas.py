@@ -106,6 +106,17 @@ class GenerateResponse(BaseModel):
     tasks: list[GeneratedTask] = Field(min_length=3, max_length=5)
 
 
+class BriefingTop(BaseModel):
+    id: int
+    reason: str
+
+
+class BriefingResponse(BaseModel):
+    top3: list[BriefingTop] = Field(max_length=3)
+    later: list[int]
+    cheer: str
+
+
 class StatusUpdate(BaseModel):
     status: Status
 

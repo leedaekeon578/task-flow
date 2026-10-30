@@ -1,0 +1,65 @@
+.briefing {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  margin: 12px 0;
+}
+
+.briefing > button,
+.briefing-actions button {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+}
+
+.briefing-card {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.briefing-card h2 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.briefing-card ol,
+.briefing-card ul {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.briefing-card li {
+  display: flex;
+  gap: 6px;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.briefing-number {
+  flex: none;
+}
+
+.briefing-cheer {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+.briefing-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.briefing-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #4b5563;
+}
