@@ -3,6 +3,7 @@ import { ApiError, CONNECTION_ERROR, changeStatus, deleteTask, listTasks, update
 import { COLUMNS, type Draft, type Status, type Task } from '../types'
 import { Briefing } from './Briefing'
 import { Column } from './Column'
+import { Command } from './Command'
 import { TaskForm } from './TaskForm'
 
 type LoadState = 'loading' | 'ready' | 'error'
@@ -148,6 +149,7 @@ export function Board() {
         }}
       />
       <Briefing tasks={tasks} />
+      <Command tasks={tasks} onApplied={reload} />
       {loadState === 'loading' && <p className="notice">불러오는 중…</p>}
       {loadState === 'error' && (
         <div className="notice error" role="alert">

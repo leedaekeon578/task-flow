@@ -12,6 +12,11 @@ class Priority(StrEnum):
 # 정렬에서 앞에 오는 순서: HIGH → NORMAL → LOW (규칙 5)
 PRIORITY_RANK = {Priority.HIGH: 0, Priority.NORMAL: 1, Priority.LOW: 2}
 
+# 한 문장으로 시키기(POST /api/tasks/command)의 입력 길이와 action 종류.
+COMMAND_MIN_LENGTH = 1
+COMMAND_MAX_LENGTH = 200
+COMMAND_KINDS = ("add", "due", "done")
+
 # 「오늘」의 기준 시간대. 지금은 한국 시간(UTC+9, 서머타임 없음).
 # UTC 로 바꾸려면 이 값만 timezone.utc 로 바꾼다. (Q-5, 사람이 확정하기 전)
 TODAY_TZ = timezone(timedelta(hours=9))

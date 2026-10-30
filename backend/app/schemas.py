@@ -4,7 +4,7 @@ from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, BeforeValidator, EmailStr, Field, field_validator
 
-from .rules import Priority
+from .rules import COMMAND_KINDS, COMMAND_MAX_LENGTH, COMMAND_MIN_LENGTH, Priority
 
 Status = Literal["TODO", "IN_PROGRESS", "DONE"]
 
@@ -115,6 +115,34 @@ class BriefingResponse(BaseModel):
     top3: list[BriefingTop] = Field(max_length=3)
     later: list[int]
     cheer: str
+
+
+class CommandRequest(BaseModel):
+    # 한 문장. 비었거나 공백만이면 안 되고 200자 이하. (규칙 값은 rules.py)
+    text: str
+
+    @field_validator("text")
+    @classmethod
+    def text_rules(cls, v: str) -> str:
+        if len(v.strip()) < COMMAND_MIN_LENGTH:
+            raise ValueError("명령을 입력하세요.")
+        if len(v) > COMMAND_MAX_LENGTH:
+            raise ValueError(f"명령은 {COMMAND_MAX_LENGTH}자 이하여야 합니다.")
+        return v
+
+
+class CommandAction(BaseModel):
+    # 다섯 키는 항상 있다. 쓰지 않는 값은 null. add 의 priority 는 항상 값이 있다(없으면 NORMAL).
+    kind: Literal[COMMAND_KINDS]
+    id: int | None
+    title: str
+    priority: Priority | None
+    due_date: DueDate | None
+
+
+class CommandResponse(BaseModel):
+    actions: list[CommandAction]
+    ask: str | None
 
 
 class StatusUpdate(BaseModel):

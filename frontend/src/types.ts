@@ -83,3 +83,28 @@ export interface Draft {
   priority: Priority
   dueDate: string
 }
+
+// POST /api/tasks/command 의 응답 안 action 한 개. 변경안일 뿐이고 서버는 저장하지 않는다.
+// add 는 id 가 null, due · done 은 priority 가 null 이다.
+export interface CommandAction {
+  kind: 'add' | 'due' | 'done'
+  id: number | null
+  title: string
+  priority: Priority | null
+  due_date: string | null // YYYY-MM-DD
+}
+
+export interface CommandResult {
+  actions: CommandAction[]
+  ask: string | null // 못 알아들었을 때 한 문장, 아니면 null
+}
+
+export const COMMAND_MAX_LENGTH = 200
+
+// API 와 같은 규칙으로 미리 안내만 한다. 최종 검증은 API 가 한다. (D-004)
+export function commandError(text: string): string | null {
+  if (!text.trim()) return '명령을 입력하세요.'
+  if (text.length > COMMAND_MAX_LENGTH)
+    return `명령은 ${COMMAND_MAX_LENGTH}자 이하여야 합니다.`
+  return null
+}

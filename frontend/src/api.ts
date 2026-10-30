@@ -1,4 +1,12 @@
-import type { AuthUser, Draft, GeneratedTask, Status, Suggestion, Task } from './types'
+import type {
+  AuthUser,
+  CommandResult,
+  Draft,
+  GeneratedTask,
+  Status,
+  Suggestion,
+  Task,
+} from './types'
 
 export class ApiError extends Error {
   status?: number
@@ -134,4 +142,13 @@ export function updateTask(id: number, input: Draft): Promise<Task> {
 
 export function deleteTask(id: number): Promise<null> {
   return request<null>(`/api/tasks/${id}`, { method: 'DELETE' })
+}
+
+// 한 문장으로 시킨 변경안만 받는다. 서버는 저장하지 않으므로 이 요청은 카드를 바꾸지 않는다.
+export function commandTasks(text: string): Promise<CommandResult> {
+  return request<CommandResult>('/api/tasks/command', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  })
 }
