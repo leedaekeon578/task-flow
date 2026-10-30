@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { ApiError } from '../api'
+import { SuggestButton, SuggestReason } from './Suggest'
+import { useSuggest } from './useSuggest'
 import {
   COLUMNS,
   PRIORITIES,
@@ -17,6 +19,8 @@ interface Props {
   onChangeStatus: (task: Task, status: Status) => Promise<void>
   onStartEdit: (task: Task) => void
   onEditChange: (task: Task, draft: Draft) => void
+  // 최신 입력값에 일부만 합친다. 기다리는 동안 고친 제목 · 설명이 옛 값으로 덮이지 않게 한다.
+  onEditPatch: (task: Task, patch: Partial<Draft>) => void
   onCancelEdit: (task: Task) => void
   onSave: (task: Task, draft: Draft) => Promise<void>
   onDelete: (task: Task) => Promise<void>
@@ -28,12 +32,14 @@ export function TaskCard({
   onChangeStatus,
   onStartEdit,
   onEditChange,
+  onEditPatch,
   onCancelEdit,
   onSave,
   onDelete,
 }: Props) {
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const suggest = useSuggest()
 
   // 요청 하나를 보내고, 실패하면 카드는 그대로 둔 채 안내만 보인다. (D-005)
   async function run(action: () => Promise<void>) {
@@ -61,7 +67,26 @@ export function TaskCard({
       setError(invalid)
       return
     }
-    run(() => onSave(task, draft))
+    run(async () => {
+      await onSave(task, draft)
+      suggest.reset()
+    })
+  }
+
+  function handleCancel() {
+    suggest.reset()
+    onCancelEdit(task)
+  }
+
+  // 제안은 우선순위 · 마감일 칸만 채운다. 제안 마감일이 없으면 적어 둔 마감일을 지우지 않는다.
+  function handleSuggest() {
+    if (!draft) return
+    suggest.run(draft.title, draft.description, (s) =>
+      onEditPatch(task, {
+        priority: s.priority,
+        ...(s.due_date ? { dueDate: s.due_date } : {}),
+      }),
+    )
   }
 
   function handleDelete() {
@@ -86,6 +111,7 @@ export function TaskCard({
               onEditChange(task, { ...draft, description: e.target.value })
             }
           />
+          <SuggestButton suggest={suggest} onClick={handleSuggest} />
           <div className="field-row">
             <label>
               우선순위
@@ -119,11 +145,12 @@ export function TaskCard({
               마감일 비우기
             </button>
           </div>
+          <SuggestReason suggest={suggest} />
           <div className="card-actions">
             <button type="button" disabled={pending} onClick={handleSave}>
               저장
             </button>
-            <button type="button" disabled={pending} onClick={() => onCancelEdit(task)}>
+            <button type="button" disabled={pending} onClick={handleCancel}>
               취소
             </button>
           </div>

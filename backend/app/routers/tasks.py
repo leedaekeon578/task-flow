@@ -4,10 +4,20 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from .. import rules
+from .. import ai, rules
 from ..db import get_db
 from ..deps import CurrentUser
-from ..schemas import INITIAL_STATUS, StatusUpdate, Task, TaskCreate, TaskUpdate
+from ..schemas import (
+    INITIAL_STATUS,
+    GenerateRequest,
+    GenerateResponse,
+    StatusUpdate,
+    SuggestRequest,
+    SuggestResponse,
+    Task,
+    TaskCreate,
+    TaskUpdate,
+)
 
 router = APIRouter(prefix="/api/tasks", tags=["tasks"])
 
@@ -65,6 +75,24 @@ def create_task(body: TaskCreate, user: CurrentUser, db: Db) -> Task:
         db.rollback()
         raise HTTPException(status_code=500, detail=STORAGE_ERROR)
     return _to_task(row, rules.today())
+
+
+@router.post("/suggest", response_model=SuggestResponse)
+def suggest_task(body: SuggestRequest, user: CurrentUser) -> SuggestResponse:
+    # 제안만 돌려준다. DB 는 열지도 않고 저장하지 않는다. 오늘 날짜는 서버가 넣는다.
+    try:
+        return ai.suggest(body.title, body.description, rules.today().isoformat())
+    except ai.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+
+
+@router.post("/generate", response_model=GenerateResponse)
+def generate_tasks(body: GenerateRequest, user: CurrentUser) -> GenerateResponse:
+    # 제안만 돌려준다. DB 는 열지도 않고 저장하지 않는다. 오늘 날짜는 서버가 넣는다.
+    try:
+        return ai.generate(body.topic, rules.today().isoformat())
+    except ai.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 
 @router.patch("/{task_id}/status", response_model=Task)

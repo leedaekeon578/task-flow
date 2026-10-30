@@ -111,6 +111,73 @@ main {
   border-color: #b00020;
 }
 
+.suggest-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.suggest-row button {
+  font: inherit;
+  font-size: 0.8rem;
+  padding: 6px 12px;
+}
+
+.suggest-status {
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+.suggest-row .form-error {
+  font-size: 0.8rem;
+}
+
+.generate-preview {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+}
+
+.generate-preview h2 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.generate-preview ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.generate-preview li {
+  display: grid;
+  gap: 2px;
+  font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+
+.generate-meta {
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+.generate-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.suggest-reason {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #4b5563;
+  overflow-wrap: anywhere;
+}
+
 .field-row {
   display: flex;
   flex-wrap: wrap;

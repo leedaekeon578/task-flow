@@ -1,4 +1,4 @@
-import type { AuthUser, Draft, Status, Task } from './types'
+import type { AuthUser, Draft, GeneratedTask, Status, Suggestion, Task } from './types'
 
 export class ApiError extends Error {
   status?: number
@@ -95,6 +95,25 @@ export function createTask(input: Draft): Promise<Task> {
     headers: { 'Content-Type': 'application/json' },
     body: taskBody(input),
   })
+}
+
+// 제안만 받는다. 서버는 저장하지 않으므로 이 요청은 카드를 바꾸지 않는다.
+export function suggestTask(title: string, description: string): Promise<Suggestion> {
+  return request<Suggestion>('/api/tasks/suggest', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description }),
+  })
+}
+
+// 주제 한 줄로 할 일 3~5개를 제안받는다. 서버는 저장하지 않는다.
+export async function generateTasks(topic: string): Promise<GeneratedTask[]> {
+  const body = await request<{ tasks: GeneratedTask[] }>('/api/tasks/generate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ topic }),
+  })
+  return body.tasks
 }
 
 export function changeStatus(id: number, status: Status): Promise<Task> {

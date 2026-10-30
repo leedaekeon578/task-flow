@@ -42,6 +42,20 @@ export function titleError(title: string): string | null {
   return null
 }
 
+// POST /api/tasks/suggest 의 응답. 제안만이고 저장하지 않는다. (D-020)
+export interface Suggestion {
+  priority: Priority
+  due_date: string | null // YYYY-MM-DD
+  reason: string
+}
+
+// POST /api/tasks/generate 의 응답 {tasks} 안의 한 개. 제안만이고 저장하지 않는다.
+export interface GeneratedTask {
+  title: string
+  priority: Priority
+  due_date: string | null // YYYY-MM-DD
+}
+
 export interface AuthUser {
   id: number
   email: string
