@@ -5,3 +5,6 @@ backend/.venv/
 .env
 *.db
 __pycache__/
+
+.vercel
+.env*
