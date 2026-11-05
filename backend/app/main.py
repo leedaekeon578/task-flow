@@ -30,5 +30,6 @@ app.include_router(tasks.router)
 
 
 @app.get("/health")
+@app.get("/api/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
